@@ -1,0 +1,78 @@
+const cardModel = require("../models/cardModel")
+
+const registerCards = async (req, res) => {
+    try {
+        const data = req.body
+        const { name, code, title, qualities } = data
+        if (Object.keys(data).length == 0)
+            return res.status(400).send('Provide valid data')
+        if (!name)
+            return res.status(400).send('Provide valid name')
+        if (!code)
+            if (!qualities)
+                return res.status(400).send('Provide valid qualities')
+
+        const newDoc = await cardModel.create(data)
+        return res.status(201).send("Successfully registered")
+
+    } catch (error) {
+        return res.status(500).send(error.messege)
+    }
+}
+
+const updateCard = async (req, res) => {
+    try {
+        const { code, title, description } = req.body
+        if (!code)
+            return res.status(400).send('Provide valid code')
+        if (!title)
+            return res.status(400).send('Provide valid title')
+        if (!description)
+            return res.status(400).send('Provide valid description')
+        const cardDoc = await cardModel.findOne({ code: code })
+        cardDoc.title = title
+        cardDoc.description = description
+        cardDoc.save()
+        return res.status(200).send("updated Successfully")
+    } catch (error) {
+        return res.status(500).send(error.messege)
+    }
+}
+
+const getCards = async (req, res) => {
+    try {
+        const cardData = await cardModel.find()
+        return res.status(200).send({ data: cardData })
+    } catch (error) {
+        return res.status(500).send(error.messege)
+    }
+}
+
+
+const validateTitle = async (req, res) => {
+    try {
+        const title = req.query.title
+        const validTitle = await cardModel.findOne({ title: title })
+        if (!validTitle)
+            return res.status(404).send(true)
+        else
+            return res.status(200).send(false)
+
+    } catch (error) {
+        return res.status(500).send(error.messege)
+    }
+}
+
+
+const cardFilter = async (req, res) => {
+    try {
+        const filterBody = req.body
+        const requiredCard = await cardModel.find({ ...filterBody })
+        return res.status(200).send({ data: requiredCard })
+
+    } catch (error) {
+        return res.status(500).send(error)
+    }
+}
+
+module.exports = { registerCards, getCards, validateTitle, cardFilter, updateCard }
